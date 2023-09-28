@@ -178,8 +178,7 @@ class Game:
         new_health = current_health + quantity
         max_health = self.current_player.characters[self.loaded_character].max_hp
         # NOTE If the new health is higher than the max health, we set it to the max health
-        if new_health > max_health:
-            new_health = max_health
+        new_health = min(new_health, max_health)
         self.current_player.characters[self.loaded_character].hp = new_health
 
     # !SECTION Base events
@@ -225,7 +224,7 @@ class Game:
         # using call-string as a function
         # TODO To ensure integrity all the items are checked
         # against our database to get the correct item properties
-        if not action in self.actions:
+        if action not in self.actions:
             return False
         result = self.execute_function(self.actions[action][0], *arguments)
         self.send_to_socket(result)
@@ -234,7 +233,7 @@ class Game:
     def send_to_socket(self, data):
         if not self.connected_ip or not self.connected_port:
             return False, "No IP or port specified for the connected player"
-        data = "[" + self.ip + ":" + self.port + "]> " + data
+        data = f"[{self.ip}:{self.port}]> {data}"
         sendsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sendsocket.connect((self.connected_ip, self.connected_port))
         sendsocket.send(data.encode())
@@ -248,7 +247,7 @@ class Game:
                 msg = self.socket.recv(4096)
             except socket.error as e:
                 err = e.args[0]
-                if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
+                if err in [errno.EAGAIN, errno.EWOULDBLOCK]:
                     time.sleep(1)
                     # Returns with no data
                     return False, ""
@@ -269,10 +268,9 @@ class Game:
                     self.connected_port = decoded.split(
                         ">")[0].split("[")[1].split(":")[1]
                     self.busy = True
-                else:
-                    if not self.connected_ip in decoded:
-                        # Ignore the message if it's not from the connected player
-                        continue
+                elif self.connected_ip not in decoded:
+                    # Ignore the message if it's not from the connected player
+                    continue
                 # NOTE Decoding the message
                 msg = decoded.split("> ")[1]
                 # Basic actions

@@ -9,11 +9,9 @@ def player_menu(players):
     valid = False
     while not valid:
         print("\n")
-        counter = 0
         chosable = []
-        for player in players:
-            counter += 1
-            print(str(counter) + ": " + players.get(player).username)
+        for counter, player in enumerate(players, start=1):
+            print(f"{counter}: {players.get(player).username}")
             chosable.append(players.get(player))
         print("\n")
         choice = input("Please select a player: ")
@@ -34,10 +32,8 @@ def player_menu(players):
 # SECTION Character display list
 def display_characters(current_player, to_choose=False):
     print("\nAvailable characters:")
-    counter = 0
-    for character in current_player.characters:
-        counter += 1
-        print(str(counter) + ": " + character.name)
+    for counter, character in enumerate(current_player.characters, start=1):
+        print(f"{str(counter)}: {character.name}")
     print("\n===============================================\n")
     if to_choose:
         valid = False
@@ -124,7 +120,7 @@ if __name__ == '__main__':
                 else:
                     print("You lost the fight!")
             else:
-                print("ERROR: " + message)
+                print(f"ERROR: {message}")
             exiting = False
         elif (choice == "3"):
             print("Logging out")
